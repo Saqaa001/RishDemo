@@ -4,7 +4,7 @@ from streamlit_cookies_manager import EncryptedCookieManager
 from uuid import uuid4
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
-
+import os
 # === Configuration ===
 SERVICE_ACCOUNT_FILE = ".streamlit/firebase.json"
 FIREBASE_WEB_API_KEY = "AIzaSyCj0UPv444P-C6ggFZ8Q_NXvSSBraHeDG4"
