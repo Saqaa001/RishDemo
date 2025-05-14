@@ -423,6 +423,119 @@ def show_success_message(question: str, answer: str, images: List[str]) -> None:
         st.session_state.search_performed = False
         st.rerun()
 
+def view_questions() -> None:
+    """Display existing questions from the database"""
+    st.subheader("View Questions")
+    science_type, test_type = render_question_filters()
+    questions = get_questions(science_type, test_type)
+    
+    if not questions:
+        st.warning("No questions found for this selection.")
+        return
+    
+    df = create_questions_dataframe(questions)
+    display_questions_table(df)
+    display_question_details(df)
+    add_download_button(df, science_type, test_type)
+
+
+
+
+def render_question_filters() -> Tuple[str, str]:
+    """Render filters for question viewing"""
+    col1, col2 = st.columns(2)
+    with col1:
+        science_type = st.selectbox("Select Science Type", SUBJECTS, index=1)
+    with col2:
+        test_type = st.selectbox("Select Test Type", TEST_TYPES, index=0)
+    return science_type, test_type
+
+def create_questions_dataframe(questions: List[Dict]) -> pd.DataFrame:
+    """Create DataFrame from questions data"""
+    topics = get_topics()
+    df_data = []
+    
+    for question in questions:
+        images = question.get("Image", [])
+        df_data.append({
+            "QID": question.get("QID", "N/A"),
+            "Question": question.get("question", "N/A"),
+            "Subject": question.get("science_type", "N/A"),
+            "Test Type": question.get("test_type", "N/A"),
+            "Topics": ", ".join(topics.get(tid, tid) for tid in question.get("Topics", [])),
+            "Option A": question.get("A", ""),
+            "Option B": question.get("B", ""),
+            "Option C": question.get("C", ""),
+            "Option D": question.get("D", ""),
+            "Correct Answer": question.get("answer", "N/A"),
+            "Created At": question.get("created_at", "N/A"),
+            "Image Count": int(len(images)) if isinstance(images, (list, tuple)) else 0,
+            "Images": images if isinstance(images, (list, tuple)) else []
+        })
+    
+    return pd.DataFrame(df_data)
+
+def display_questions_table(df: pd.DataFrame) -> None:
+    """Display questions in an interactive table"""
+    st.dataframe(
+        df.drop(columns=["Images"]),
+        use_container_width=True,
+        height=600,
+        hide_index=True,
+        column_config={
+            "Image Count": st.column_config.NumberColumn(
+                "Images",
+                help="Number of attached images",
+                format="%d 📷"
+            ),
+            "Created At": st.column_config.DatetimeColumn(
+                "Created",
+                format="YYYY-MM-DD HH:mm"
+            )
+        }
+    )
+
+def display_question_details(df: pd.DataFrame) -> None:
+    """Display detailed view of selected question"""
+    st.subheader("Question Details")
+    selected_qid = st.selectbox(
+        "Select Question to View Details",
+        options=df["QID"],
+        index=0,
+        format_func=lambda x: f"QID: {x}"
+    )
+    
+    selected_question = df[df["QID"] == selected_qid].iloc[0]
+    
+    with st.expander("View Full Question", expanded=True):
+        render_question_detail_view(selected_question)
+
+def render_question_detail_view(question: pd.Series) -> None:
+    """Render detailed view of a single question"""
+    st.markdown(f"**Question:** {question['Question']}")
+    st.markdown(f"**Subject:** {question['Subject']}")
+    st.markdown(f"**Test Type:** {question['Test Type']}")
+    st.markdown(f"**Topics:** {question['Topics']}")
+    
+    st.markdown("**Options:**")
+    for option in ['A', 'B', 'C', 'D']:
+        st.markdown(f"- {option}) {question[f'Option {option}']}")
+    
+    st.markdown(f"**Correct Answer:** {question['Correct Answer']}")
+    
+    if question["Image Count"] > 0:
+        display_images(question["Images"])
+
+def add_download_button(df: pd.DataFrame, science_type: str, test_type: str) -> None:
+    """Add CSV download button for questions"""
+    csv = df.drop(columns=["Images"]).to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="Download Questions as CSV",
+        data=csv,
+        file_name=f"questions_{science_type}_{test_type}.csv",
+        mime="text/csv"
+    )
+
 def main() -> None:
     """Main application function"""
     st.title("Teacher Portal")
@@ -457,7 +570,8 @@ def render_sidebar() -> None:
         add_topic_form()
     elif menu_option == "Add Questions":
         add_question_form()
-
+    elif menu_option == "View Questions":
+        view_questions()
 
 if __name__ == "__main__":
     db = get_db()

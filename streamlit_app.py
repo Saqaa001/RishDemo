@@ -12,10 +12,6 @@ FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInW
 
 
 
-
-
-
-
 ROLES = ["Registration", "Student", "Teacher", "Admin", None]
 
 # === Cached Firebase Setup ===
