@@ -4,36 +4,25 @@ from streamlit_cookies_manager import EncryptedCookieManager
 from uuid import uuid4
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
-import os
-import json
-from pathlib import Path
 
 # === Configuration ===
-# Load from secrets.toml
-secrets = st.secrets
-
-# Initialize Firebase
-if not firebase_admin._apps:
-    # Convert the TOML service account config to JSON format
-    service_account_info = dict(secrets.firebase_service_account)
-    
-    # Create temporary credentials file if needed
-    cred = credentials.Certificate(service_account_info)
-    firebase_admin.initialize_app(cred)
-
-# Get API key from secrets
-FIREBASE_WEB_API_KEY = secrets["AIzaSyCj0UPv444P-C6ggFZ8Q_NXvSSBraHeDG4"]
+SERVICE_ACCOUNT_FILE = ".streamlit/firebase.json"
+FIREBASE_WEB_API_KEY = "AIzaSyCj0UPv444P-C6ggFZ8Q_NXvSSBraHeDG4"
 FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_WEB_API_KEY}"
 
-# Initialize EncryptedCookieManager
-cookies = EncryptedCookieManager(
-    prefix="my_app_",
-    password=secrets["firebase_service_account"]  # Add this to your secrets.toml
-)
 
 
-# Rest of your app code...
-db = firebase_admin.initialize_app(cred)
+ROLES = ["Registration", "Student", "Teacher", "Admin", None]
+
+# === Cached Firebase Setup ===
+@st.cache_resource
+def init_firebase():
+    if not firebase_admin._apps:
+        cred = credentials.Certificate(SERVICE_ACCOUNT_FILE)
+        firebase_admin.initialize_app(cred)
+    return firestore.client()
+
+db = init_firebase()
 if db not in st.session_state:
     st.session_state['db'] = db
 
