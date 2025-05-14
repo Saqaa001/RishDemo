@@ -36,6 +36,108 @@ def get_existing_documents():
         st.error(f"Failed to fetch documents: {e}")
         return []
 
+@st.cache_data(ttl=300)
+def get_existing_documents():
+    """Fetch and cache the list of existing document names"""
+    try:
+        docs = db.collection("ScienceTopics").stream()
+        return [doc.id for doc in docs]
+    except Exception as e:
+        st.error(f"Failed to fetch documents: {e}")
+        return []
+
+def add_topic_form() -> None:
+    """Form to add new topics to ScienceTopics with document selection"""
+    st.subheader("Add New Topic")
+    
+    existing_docs = get_existing_documents()
+    topic_display = st.empty()  # Placeholder for topics display
+    
+    with st.form("topic_form"):
+        # Document selection with search capability
+        if existing_docs:
+            document_name = st.selectbox(
+                "Select Document",
+                options=existing_docs,
+                index=0,
+                help="Select an existing document or type to search"
+            )
+            
+            # Show topics in selected document
+            try:
+                doc_ref = db.collection("ScienceTopics").document(document_name)
+                current_topics = doc_ref.get().to_dict() or {}
+                if current_topics:
+                    with topic_display.container():
+                        st.write("Current topics in this document:")
+                        st.json(current_topics)
+                else:
+                    topic_display.info("No topics found in this document")
+            except Exception as e:
+                topic_display.error(f"Failed to load document: {e}")
+        else:
+            st.warning("No documents found in ScienceTopics collection")
+            document_name = st.text_input("Create New Document Name", value="Math")
+        
+        # Topic input fields
+        col1, col2 = st.columns(2)
+        with col1:
+            topic_id = st.text_input(
+                "Topic ID (must start with TID_)", 
+                value="TID_UX_GX_CX_T1",
+                help="Format: TID_[category]_[subcategory]_[topicnum]"
+            )
+        with col2:
+            topic_name = st.text_input("Topic Name", value="Topic 1")
+        
+        if st.form_submit_button("Add Topic"):
+            # Validation
+            if not document_name:
+                st.error("Please select or create a document")
+                return
+            if not (topic_id.startswith("TID_") and topic_name):
+                st.error("Validation Error: Topic ID must start with TID_ and Name cannot be empty")
+                return
+            
+            try:
+                doc_ref = db.collection("ScienceTopics").document(document_name)
+                
+                # Check if topic ID already exists
+                current_data = doc_ref.get().to_dict() or {}
+                if topic_id in current_data:
+                    st.warning(f"Topic ID '{topic_id}' already exists in this document")
+                    if not st.checkbox("Overwrite existing topic?"):
+                        return
+                
+                # Update document
+                doc_ref.update({topic_id: topic_name})
+                
+                # Clear and refresh display
+                topic_display.empty()
+                with topic_display.container():
+                    updated_topics = doc_ref.get().to_dict() or {}
+                    if updated_topics:
+                        st.write("Updated topics in this document:")
+                        st.json(updated_topics)
+                    else:
+                        st.info("No topics found in this document")
+                
+                # Clear caches
+                st.cache_data.clear()
+                st.success(f"Topic '{topic_name}' ({topic_id}) added successfully!")
+                
+            except Exception as e:
+                if "No document to update" in str(e):
+                    # Document doesn't exist, create it first
+                    try:
+                        db.collection("ScienceTopics").document(document_name).set({topic_id: topic_name})
+                        topic_display.empty()
+                        st.cache_data.clear()
+                        st.success(f"Created new document '{document_name}' with first topic!")
+                    except Exception as create_error:
+                        st.error(f"Failed to create document: {create_error}")
+                else:
+                    st.error(f"Database Error: {e}")
 
 
 @st.cache_data(ttl=300)
