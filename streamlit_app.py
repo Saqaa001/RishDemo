@@ -4,6 +4,7 @@ from streamlit_cookies_manager import EncryptedCookieManager
 from uuid import uuid4
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
+from streamlit import navigation, Page
 
 # === Firebase Configuration ===
 SERVICE_ACCOUNT_FILE = ".streamlit/firebase.json"
@@ -163,9 +164,15 @@ def get_pages():
     return {
         "Student": [
             Page("student/student.py", title="Student", icon="🎓", default=st.session_state.role == "Student"),
-            Page("student/examtest.py", title="Exam Test", icon="📝"),
-            Page("student/Getdb.py", title="Exam Test")],
-        "Teacher": [Page("teacher/teacher.py", title="Teacher", icon="👩‍🏫", default=st.session_state.role == "Teacher")],
+            Page("student/Test_ID_Box.py", title="Take test by id Box",icon="📦")],
+        
+
+        "Teacher": [
+                    Page("teacher/teacher.py", title="Teacher", icon="👩‍🏫", default=st.session_state.role == "Teacher"),
+                    Page("teacher/show_box.py", title="Show box", icon="📦"),
+                    Page("teacher/Statistic_by_box.py", title="Show Statistcs Student By Box", icon="📈")
+                    ],
+                         
         "Admin": [Page("admin/admin.py", title="Admin", icon="👨‍💼", default=st.session_state.role == "Admin")],
         "Registration": [Page("registration/registration.py", title="Registration", icon="📝", default=st.session_state.role == "Registration")],
         "Account": [
@@ -177,7 +184,7 @@ def get_pages():
     }
 
 def main():
-    from streamlit import navigation, Page
+    
 
     if not st.session_state.role:
         navigation([Page(login, title="Login")]).run()

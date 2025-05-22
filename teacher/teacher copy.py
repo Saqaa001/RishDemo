@@ -681,17 +681,6 @@ def display_selectable_questions_table(questions: List[Dict], subject: str, test
             st.error(f"Failed to save: {str(e)}")
 
 
-
-
-
-
-
-
-
-
-
-
-
 def main() -> None:
     """Main application function"""
     
@@ -756,12 +745,74 @@ def authenticate() -> bool:
         return False
     return True
 
+def View_Box_test():
+    st.title("Math Questions Viewer")
+    
+    try:
+        # Reference to the document containing QuestionIDs
+        doc_ref = db.collection("Questions").document("Math")
+        
+        # Get the document with more detailed debugging
+        st.write("Attempting to fetch document from: Questions/Math")
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            st.error("The specified Math document does not exist!")
+            return
+            
+        data = doc.to_dict()
+        st.write("Document data:", data)  # Debug output
+        
+        # Safely get values with defaults
+        question_ids = data.get("QuestionIDs", [])
+        which_group = data.get("WhichGroup", "Unknown Group")
+        date = data.get("Date", "Unknown Date")
+        
+        st.subheader(f"Group: {which_group} - Date: {date}")
+        st.write(f"Total Questions: {len(question_ids)}")
+        
+        if not question_ids:
+            st.warning("No question IDs found in the document!")
+            return
+            
+        # Get all questions from the "All" collection
+        for i, qid in enumerate(question_ids, 1):
+            try:
+                st.write(f"\nFetching question {i}/{len(question_ids)}: {qid}")
+                question_ref = db.collection("Questions").document("Math").collection("All").document(qid)
+                question_doc = question_ref.get()
+                
+                if not question_doc.exists:
+                    st.warning(f"Question with ID {qid} not found in 'All' collection!")
+                    continue
+                    
+                question_data = question_doc.to_dict()
+                st.write("Question data:", question_data)  # Debug output
+                
+                # Display each question in an expandable box
+                with st.expander(f"Question {i}: {qid}"):
+                    for key, value in question_data.items():
+                        st.write(f"**{key}**: {value}")
+                    st.write("---")
+                    
+            except Exception as e:
+                st.error(f"Error processing question {qid}: {e}")
+                continue
+                
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+        st.error("Please check:")
+        st.error("1. Firebase credentials are correct")
+        st.error("2. Database structure matches expected format")
+        st.error("3. Internet connection is active")
+
+
 def render_sidebar() -> None:
     """Render sidebar navigation"""
     st.sidebar.title("📋 Teacher Menu")
     menu_option = st.sidebar.radio(
         "Options", 
-        ["Add Topics", "Add Questions", "View Questions", "Student Analytics"],
+        ["Add Topics", "Add Questions", "View Questions", "View Box test", "Student Analytics" ],
         key="teacher_menu"
     )
     
@@ -771,14 +822,20 @@ def render_sidebar() -> None:
     
     if menu_option == "Add Topics":
         add_topic_form()
+
     elif menu_option == "Add Questions":
         add_question_form()
+
     elif menu_option == "View Questions":
         view_questions()
+    
+    elif menu_option == "View Box test":
+        View_Box_test()
+
     elif menu_option == "Student Analytics":
         st.info("Student analytics dashboard coming soon!")
         # Placeholder for future student analytics functionality
-
+   
 if __name__ == "__main__":
     db = get_db()
     main()

@@ -164,7 +164,9 @@ def get_pages():
         "Student": [
             Page("student/student.py", title="Student", icon="🎓", default=st.session_state.role == "Student"),
             Page("student/examtest.py", title="Exam Test", icon="📝"),
-            Page("student/Getdb.py", title="Exam Test")],
+            Page("student/Test_ID_Box.py", title="Take test by id Box",icon="📦")],
+        
+
         "Teacher": [Page("teacher/teacher.py", title="Teacher", icon="👩‍🏫", default=st.session_state.role == "Teacher")],
         "Admin": [Page("admin/admin.py", title="Admin", icon="👨‍💼", default=st.session_state.role == "Admin")],
         "Registration": [Page("registration/registration.py", title="Registration", icon="📝", default=st.session_state.role == "Registration")],
