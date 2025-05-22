@@ -97,6 +97,7 @@ def main():
                     for qid, answer in answers.items():
                         question_body = get_question_body(qid)
                         correct_answer = question_body.get("answer")
+                        correct_answer_value = question_body.get(correct_answer)
                         is_correct = (answer == correct_answer)
 
                         total_questions += 1
@@ -112,6 +113,7 @@ def main():
                             "Answer Given": answer,
                             "Correct Answer": correct_answer,
                             "Is Correct": is_correct,
+                            "correct_answer_value":correct_answer_value
                         })
 
                         # Update per-question stats
@@ -128,13 +130,13 @@ def main():
                         student_scores[selected_box]["total_questions"] += 1
 
                         if (is_correct and show_correct) or (not is_correct and show_incorrect):
-                            st.markdown(f"**Q{i}.{qid}**: Answer: `{answer}`")
+                            st.markdown(f"**Q{i}. {qid}**")
                             if question_body:
                                 st.write("Question:", question_body.get("question", "No question text."))
                             if is_correct:
-                                st.success("✅ Correct")
+                                st.success(f"✅ {answer}. {correct_answer_value}")
                             else:
-                                st.error(f"❌ Incorrect (Expected: `{correct_answer}`)")
+                                st.error(f"❌ {answer}. {correct_answer_value }")
 
                     # Append per-document summary
                     accuracy = (correct_in_doc / total_in_doc) * 100 if total_in_doc > 0 else 0
@@ -303,7 +305,7 @@ def main():
                 username = get_student_username(box_id)
                 if st.button(username, key=f"btn_{box_id}"):
                     st.session_state.selected_box = box_id
-
+                    st.rerun()
 
 if __name__ == "__main__":
     main()
