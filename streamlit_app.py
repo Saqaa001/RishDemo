@@ -170,7 +170,9 @@ def get_pages():
         "Teacher": [
                     Page("teacher/teacher.py", title="Teacher", icon="👩‍🏫", default=st.session_state.role == "Teacher"),
                     Page("teacher/show_box.py", title="Show box", icon="📦"),
-                    Page("teacher/Statistic_by_box.py", title="Show Statistcs Student By Box", icon="📈")
+                    Page("teacher/Statistic_by_box.py", title="Statistcs Student By Box", icon="📈"),
+                    Page("teacher/Table_Statistics.py", title="Statistcs Table", icon="📈")
+                   
                     ],
                          
         "Admin": [Page("admin/admin.py", title="Admin", icon="👨‍💼", default=st.session_state.role == "Admin")],
