@@ -58,54 +58,65 @@ def main():
             if st.session_state.box_data and not st.session_state.selected_box:
                 st.session_state.selected_box = next(iter(st.session_state.box_data.keys()))
     
-    
-        # Prepare to collect data
-        usernames = []
-        usernames_id = []
-        true_false_lists = []
-        all_question_keys = set()
+            # Prepare to collect data
+            usernames = []
+            usernames_id = []
+            true_false_lists = []
+            all_question_keys = set()
 
-        # First pass: collect usernames and all unique question keys
-        for key, value in st.session_state.box_data.items():
-            usernames_id.append(key)
-            username = get_student_username(key)
-            usernames.append(username)
+            # First pass: collect usernames and all unique question keys
+            for key, value in st.session_state.box_data.items():
+                usernames_id.append(key)
+                username = get_student_username(key)
+                usernames.append(username)
 
-            taken_test = get_student_taken_test(value[0])
-            question_answer = taken_test.get("answers", {})
+                taken_test = get_student_taken_test(value[0])
+                question_answer = taken_test.get("answers", {})
 
-            all_question_keys.update(question_answer.keys())
+                all_question_keys.update(question_answer.keys())
 
-        # Sort question keys to keep consistent QN order
-        sorted_question_keys = sorted(all_question_keys)
+            # Sort question keys to keep consistent QN order
+            sorted_question_keys = sorted(all_question_keys)
 
-        # Second pass: build true/false matrix
-        for key in usernames_id:
-            taken_test = get_student_taken_test(st.session_state.box_data[key][0])
-            question_answer = taken_test.get("answers", {})
-            true_false_list = []
+            # Second pass: build true/false matrix
+            for key in usernames_id:
+                taken_test = get_student_taken_test(st.session_state.box_data[key][0])
+                question_answer = taken_test.get("answers", {})
+                true_false_list = []
 
-            for qid in sorted_question_keys:
-                student_answer = question_answer.get(qid, None)
-                correct_answer = get_question_body(qid)
-                is_correct = "✅" if student_answer == correct_answer else "❌"
-                true_false_list.append(is_correct)
+                for qid in sorted_question_keys:
+                    student_answer = question_answer.get(qid, None)
+                    correct_answer = get_question_body(qid)
+                    is_correct = "✅" if student_answer == correct_answer else "❌"
+                    true_false_list.append(is_correct)
 
-            true_false_lists.append(true_false_list)
+                true_false_lists.append(true_false_list)
 
-        # Build DataFrame with usernames as columns, QNs as index
-        df = pd.DataFrame(true_false_lists, index=usernames).T
+            # Build DataFrame with usernames as columns, QNs as index
+            df = pd.DataFrame(true_false_lists, index=usernames).T
 
-        # Set dynamic QN based on question keys
-        df.index = [f"Q{n+1}" for n in range(len(df))]
-        df.index.name = "QN"
+            # Set dynamic QN based on question keys
+            df.index = [f"Q{n+1}" for n in range(len(df))]
+            df.index.name = "QN"
 
-        # Display
-        st.dataframe(df)
+            # Add total stats rows: count number of "✅" and "❌" per student
+            total_correct = (df == "✅").sum(axis=0)
+            total_incorrect = (df == "❌").sum(axis=0)
+            df.loc["Total Correct"] = total_correct
+            df.loc["Total Incorrect"] = total_incorrect
 
+            # Add column totals for questions: how many students got a question correct/incorrect
+            total_question_correct = (df == "✅").sum(axis=1)
+            total_question_incorrect = (df == "❌").sum(axis=1)
+            df["Total Correct"] = total_question_correct
+            df["Total Incorrect"] = total_question_incorrect
+
+            # Display the DataFrame
+            st.dataframe(df)
 
 if __name__ == "__main__":
     main()
+
 
         
         # # Initial usernames
