@@ -171,17 +171,17 @@ def get_pages():
                     Page("teacher/teacher.py", title="Teacher", icon="👩‍🏫", default=st.session_state.role == "Teacher"),
                     Page("teacher/show_box.py", title="Show box", icon="📦"),
                     Page("teacher/Statistic_by_box.py", title="Statistcs Student By Box", icon="📈"),
-                    Page("teacher/Table_Statistics.py", title="Statistcs Table", icon="📈")
-                   
-                    ],
+                    Page("teacher/Table_Statistics.py", title="Statistcs Table", icon="📈") ],
                          
-        "Admin": [Page("admin/admin.py", title="Admin", icon="👨‍💼", default=st.session_state.role == "Admin")],
+        "Admin": [
+                    Page("admin/admin.py", title="Admin", icon="👨‍💼", default=st.session_state.role == "Admin"),
+                    Page("admin/rasch_model.py", title="Rasch Model", icon="📈")
+                   
+                   ],
         "Registration": [Page("registration/registration.py", title="Registration", icon="📝", default=st.session_state.role == "Registration")],
         "Account": [
             Page("settings.py", title="Settings", icon="⚙️"),
-            Page(logout, title="Log out", icon="🚪"),
-            Page("Tutoreal/Math/Math.py",title="Math",icon="📝"),
-            Page("Tutoreal/English/English.py",title="English")
+            Page(logout, title="Log out", icon="🚪")
         ]
     }
 

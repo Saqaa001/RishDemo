@@ -173,7 +173,7 @@ def add_topic_form() -> None:
                 with topic_display.container():
                     if current_topics:
                         st.write("Current topics in this document:")
-                        st.json(current_topics)
+                       
                     else:
                         st.info("No topics found in this document")
             except Exception as e:
