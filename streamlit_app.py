@@ -30,13 +30,30 @@ firebase_config = {
 }
 
 
+# # === Initialize Firebase ===
+# @st.cache_resource
+# def init_firebase():
+#     if not firebase_admin._apps:
+#         cred = credentials.Certificate(SERVICE_ACCOUNT_FILE)
+#         firebase_admin.initialize_app(cred)
+#     return firestore.client()
+
+
+# # --- Firebase Init ---
+# if not firebase_admin._apps:
+#     cred = credentials.Certificate(".streamlit/firebase.json")
+#     firebase_admin.initialize_app(cred)
+
+
 # === Initialize Firebase ===
 @st.cache_resource
 def init_firebase():
     if not firebase_admin._apps:
-        cred = credentials.Certificate(SERVICE_ACCOUNT_FILE)
+        cred = credentials.Certificate(".streamlit/firebase.json")
         firebase_admin.initialize_app(cred)
     return firestore.client()
+
+    
 
 
 db = firestore.client()
