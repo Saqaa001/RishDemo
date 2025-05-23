@@ -56,7 +56,7 @@ def init_firebase():
     
 
 
-db = firestore.client()
+db = init_firebase()
 if db not in st.session_state:
     st.session_state['db'] = db
 
