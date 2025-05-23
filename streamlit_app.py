@@ -5,12 +5,30 @@ from uuid import uuid4
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 from streamlit import navigation, Page
+import os
+from dotenv import load_dotenv
+import json
 
-# === Firebase Configuration ===
-SERVICE_ACCOUNT_FILE = ".streamlit/firebase.json"
-FIREBASE_WEB_API_KEY = "AIzaSyCj0UPv444P-C6ggFZ8Q_NXvSSBraHeDG4"
+FIREBASE_WEB_API_KEY = os.getenv("FIREBASE_WEB_API_KEY")
 FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_WEB_API_KEY}"
+
 ROLES = ["Registration", "Student", "Teacher", "Admin", None]
+load_dotenv()
+
+# Construct credential dict from env vars
+firebase_config = {
+    "type": os.getenv("FIREBASE_TYPE"),
+    "project_id": os.getenv("FIREBASE_PROJECT_ID"),
+    "private_key_id": os.getenv("FIREBASE_PRIVATE_KEY_ID"),
+    "private_key": os.getenv("FIREBASE_PRIVATE_KEY").replace("\\n", "\n"),
+    "client_email": os.getenv("FIREBASE_CLIENT_EMAIL"),
+    "client_id": os.getenv("FIREBASE_CLIENT_ID"),
+    "auth_uri": os.getenv("FIREBASE_AUTH_URI"),
+    "token_uri": os.getenv("FIREBASE_TOKEN_URI"),
+    "auth_provider_x509_cert_url": os.getenv("FIREBASE_AUTH_PROVIDER_X509_CERT_URL"),
+    "client_x509_cert_url": os.getenv("FIREBASE_CLIENT_X509_CERT_URL")
+}
+
 
 # === Initialize Firebase ===
 @st.cache_resource
@@ -20,8 +38,11 @@ def init_firebase():
         firebase_admin.initialize_app(cred)
     return firestore.client()
 
-db = init_firebase()
-st.session_state.setdefault("db", db)
+
+db = firestore.client()
+if db not in st.session_state:
+    st.session_state['db'] = db
+
 
 # === Firebase Authentication ===
 @st.cache_data(show_spinner=True)
